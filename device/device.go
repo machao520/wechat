@@ -3,9 +3,8 @@ package device
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/silenceper/wechat/context"
-	"github.com/silenceper/wechat/util"
+	"github.com/machao520/wechat/wechat"
+	"github.com/machao520/wechat/util"
 )
 
 const (
@@ -21,13 +20,13 @@ const (
 
 //Device struct
 type Device struct {
-	*context.Context
+	*wechat.Wechat
 }
 
 //NewDevice 实例
-func NewDevice(context *context.Context) *Device {
+func NewDevice(wechat *wechat.Wechat) *Device {
 	device := new(Device)
-	device.Context = context
+	device.Wechat = wechat
 	return device
 }
 

@@ -1,16 +1,18 @@
 package tcb
 
-import "github.com/silenceper/wechat/context"
+import (
+	"github.com/machao520/wechat"
+)
 
 //Tcb Tencent Cloud Base
 type Tcb struct{
-	*context.Context
+	*wechat.Wechat
 }
 
 //NewTcb new Tencent Cloud Base
-func NewTcb(context *context.Context)*Tcb{
+func NewTcb(wechat *wechat.Wechat)*Tcb{
 	return &Tcb{
-		context,
+		wechat,
 	}
 }
 

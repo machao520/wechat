@@ -36,17 +36,6 @@ type UserInfo struct {
 	} `json:"watermark"`
 }
 
-// PhoneInfo 用户手机号
-type PhoneInfo struct {
-	PhoneNumber     string `json:"phoneNumber"`
-	PurePhoneNumber string `json:"purePhoneNumber"`
-	CountryCode     string `json:"countryCode"`
-	Watermark       struct {
-		Timestamp int64  `json:"timestamp"`
-		AppID     string `json:"appid"`
-	} `json:"watermark"`
-}
-
 // pkcs7Unpad returns slice of the original data without padding
 func pkcs7Unpad(data []byte, blockSize int) ([]byte, error) {
 	if blockSize <= 0 {
@@ -68,8 +57,8 @@ func pkcs7Unpad(data []byte, blockSize int) ([]byte, error) {
 	return data[:len(data)-n], nil
 }
 
-// getCipherText returns slice of the cipher text
-func getCipherText(sessionKey, encryptedData, iv string) ([]byte, error) {
+// Decrypt 解密数据
+func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo, error) {
 	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
 	if err != nil {
 		return nil, err
@@ -92,15 +81,6 @@ func getCipherText(sessionKey, encryptedData, iv string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cipherText, nil
-}
-
-// Decrypt 解密数据
-func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo, error) {
-	cipherText, err := getCipherText(sessionKey, encryptedData, iv)
-	if err != nil {
-		return nil, err
-	}
 	var userInfo UserInfo
 	err = json.Unmarshal(cipherText, &userInfo)
 	if err != nil {
@@ -110,21 +90,4 @@ func (wxa *MiniProgram) Decrypt(sessionKey, encryptedData, iv string) (*UserInfo
 		return nil, ErrAppIDNotMatch
 	}
 	return &userInfo, nil
-}
-
-// DecryptPhone 解密数据(手机)
-func (wxa *MiniProgram) DecryptPhone(sessionKey, encryptedData, iv string) (*PhoneInfo, error) {
-	cipherText, err := getCipherText(sessionKey, encryptedData, iv)
-	if err != nil {
-		return nil, err
-	}
-	var phoneInfo PhoneInfo
-	err = json.Unmarshal(cipherText, &phoneInfo)
-	if err != nil {
-		return nil, err
-	}
-	if phoneInfo.Watermark.AppID != wxa.AppID {
-		return nil, ErrAppIDNotMatch
-	}
-	return &phoneInfo, nil
 }

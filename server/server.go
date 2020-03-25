@@ -9,15 +9,16 @@ import (
 	"runtime/debug"
 	"strconv"
 
-	"github.com/silenceper/wechat/context"
-	"github.com/silenceper/wechat/message"
-	"github.com/silenceper/wechat/util"
+	"github.com/machao520/wechat/context"
+	"github.com/machao520/wechat/message"
+	"github.com/machao520/wechat/util"
+	"github.com/machao520/wechat/wechat"
 )
 
 //Server struct
 type Server struct {
 	*context.Context
-
+	*wechat.Wechat
 	debug bool
 
 	openID string
@@ -36,9 +37,10 @@ type Server struct {
 }
 
 //NewServer init
-func NewServer(context *context.Context) *Server {
+func NewServer(context *context.Context, wc *wechat.Wechat) *Server {
 	srv := new(Server)
 	srv.Context = context
+	srv.Wechat = wc
 	return srv
 }
 
@@ -65,9 +67,7 @@ func (srv *Server) Serve() error {
 	}
 
 	//debug
-	if srv.debug {
-		fmt.Println("request msg = ", string(srv.requestRawXMLMsg))
-	}
+	//fmt.Println("request msg = ", string(srv.requestRawXMLMsg))
 
 	return srv.buildResponse(response)
 }

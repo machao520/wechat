@@ -3,8 +3,8 @@ package message
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/silenceper/wechat/context"
-	"github.com/silenceper/wechat/util"
+	"github.com/machao520/wechat"
+	"github.com/machao520/wechat/util"
 )
 
 const (
@@ -13,13 +13,13 @@ const (
 
 //Manager 消息管理者，可以发送消息
 type Manager struct {
-	*context.Context
+	*wechat.Wechat
 }
 
 //NewMessageManager 实例化消息管理者
-func NewMessageManager(context *context.Context) *Manager {
+func NewMessageManager(wechat *wechat.Wechat) *Manager {
 	return &Manager{
-		context,
+		wechat,
 	}
 }
 

@@ -1,10 +1,6 @@
 package message
 
-import (
-	"encoding/xml"
-
-	"github.com/silenceper/wechat/device"
-)
+import "encoding/xml"
 
 // MsgType 基本消息类型
 type MsgType string
@@ -67,8 +63,6 @@ const (
 	EventLocationSelect = "location_select"
 	//EventTemplateSendJobFinish 发送模板消息推送通知
 	EventTemplateSendJobFinish = "TEMPLATESENDJOBFINISH"
-	//EventWxaMediaCheck 异步校验图片/音频是否含有违法违规内容推送事件
-	EventWxaMediaCheck = "wxa_media_check"
 )
 
 const (
@@ -150,15 +144,6 @@ type MixMessage struct {
 	OuterStr            string `xml:"OuterStr"`
 	IsRestoreMemberCard int32  `xml:"IsRestoreMemberCard"`
 	UnionID             string `xml:"UnionId"`
-
-	// 内容审核相关
-	IsRisky       bool   `xml:"isrisky"`
-	ExtraInfoJSON string `xml:"extra_info_json"`
-	TraceID       string `xml:"trace_id"`
-	StatusCode    int    `xml:"status_code"`
-
-	//设备相关
-	device.MsgDevice
 }
 
 //EventPic 发图事件推送
@@ -182,32 +167,22 @@ type ResponseEncryptedXMLMsg struct {
 	Nonce        string   `xml:"Nonce"        json:"Nonce"`
 }
 
-// CDATA  使用该类型,在序列化为 xml 文本时文本会被解析器忽略
-type CDATA string
-
-// MarshalXML 实现自己的序列化方法
-func (c CDATA) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return e.EncodeElement(struct {
-		string `xml:",cdata"`
-	}{string(c)}, start)
-}
-
 // CommonToken 消息中通用的结构
 type CommonToken struct {
 	XMLName      xml.Name `xml:"xml"`
-	ToUserName   CDATA    `xml:"ToUserName"`
-	FromUserName CDATA    `xml:"FromUserName"`
+	ToUserName   string   `xml:"ToUserName"`
+	FromUserName string   `xml:"FromUserName"`
 	CreateTime   int64    `xml:"CreateTime"`
 	MsgType      MsgType  `xml:"MsgType"`
 }
 
 //SetToUserName set ToUserName
-func (msg *CommonToken) SetToUserName(toUserName CDATA) {
+func (msg *CommonToken) SetToUserName(toUserName string) {
 	msg.ToUserName = toUserName
 }
 
 //SetFromUserName set FromUserName
-func (msg *CommonToken) SetFromUserName(fromUserName CDATA) {
+func (msg *CommonToken) SetFromUserName(fromUserName string) {
 	msg.FromUserName = fromUserName
 }
 

@@ -7,34 +7,20 @@ import (
 	"encoding/pem"
 	"encoding/xml"
 	"fmt"
+	"golang.org/x/crypto/pkcs12"
 	"io"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
-
-	"golang.org/x/crypto/pkcs12"
+	"strings"
+	"bufio"
 )
 
 //HTTPGet get 请求
 func HTTPGet(uri string) ([]byte, error) {
 	response, err := http.Get(uri)
-	if err != nil {
-		return nil, err
-	}
-
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("http get error : uri=%v , statusCode=%v", uri, response.StatusCode)
-	}
-	return ioutil.ReadAll(response.Body)
-}
-
-//HTTPPost post 请求
-func HTTPPost(uri string, data string) ([]byte, error) {
-	body := bytes.NewBuffer([]byte(data))
-	response, err := http.Post(uri, "", body)
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +38,11 @@ func PostJSON(uri string, obj interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	jsonData = bytes.Replace(jsonData, []byte("\\u003c"), []byte("<"), -1)
 	jsonData = bytes.Replace(jsonData, []byte("\\u003e"), []byte(">"), -1)
 	jsonData = bytes.Replace(jsonData, []byte("\\u0026"), []byte("&"), -1)
+
 	body := bytes.NewBuffer(jsonData)
 	response, err := http.Post(uri, "application/json;charset=utf-8", body)
 	if err != nil {
@@ -127,16 +115,32 @@ func PostMultipartForm(fields []MultipartFormField, uri string) (respBody []byte
 				return
 			}
 
-			fh, e := os.Open(field.Filename)
-			if e != nil {
-				err = fmt.Errorf("error opening file , err=%v", e)
-				return
+			// 判断是否网络图片
+			if strings.Contains(field.Filename, "http") {
+				res, e := http.Get(field.Filename)
+				if e != nil {
+					err = fmt.Errorf("error opening intent file , err=%v", e)
+					return
+				}
+				defer res.Body.Close()
+				fh := bufio.NewReader(res.Body)
+				if _, err = io.Copy(fileWriter, fh); err != nil {
+					return
+				}
+			}else{
+				fh, e := os.Open(field.Filename)
+				if e != nil {
+					err = fmt.Errorf("error opening file , err=%v", e)
+					return
+				}
+				defer fh.Close()
+				if _, err = io.Copy(fileWriter, fh); err != nil {
+					return
+				}
 			}
-			defer fh.Close()
 
-			if _, err = io.Copy(fileWriter, fh); err != nil {
-				return
-			}
+
+
 		} else {
 			partWriter, e := bodyWriter.CreateFormField(field.Fieldname)
 			if e != nil {

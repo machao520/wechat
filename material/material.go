@@ -5,26 +5,25 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/silenceper/wechat/context"
-	"github.com/silenceper/wechat/util"
+	"github.com/machao520/wechat/util"
+	"github.com/machao520/wechat/wechat"
 )
 
 const (
 	addNewsURL     = "https://api.weixin.qq.com/cgi-bin/material/add_news"
 	addMaterialURL = "https://api.weixin.qq.com/cgi-bin/material/add_material"
 	delMaterialURL = "https://api.weixin.qq.com/cgi-bin/material/del_material"
-	getMaterialURL = "https://api.weixin.qq.com/cgi-bin/material/get_material"
 )
 
 //Material 素材管理
 type Material struct {
-	*context.Context
+	*wechat.Wechat
 }
 
 //NewMaterial init
-func NewMaterial(context *context.Context) *Material {
+func NewMaterial(wc *wechat.Wechat) *Material {
 	material := new(Material)
-	material.Context = context
+	material.Wechat = wc
 	return material
 }
 
@@ -32,39 +31,11 @@ func NewMaterial(context *context.Context) *Material {
 type Article struct {
 	Title            string `json:"title"`
 	ThumbMediaID     string `json:"thumb_media_id"`
-	ThumbURL         string `json:"thumb_url"`
 	Author           string `json:"author"`
 	Digest           string `json:"digest"`
 	ShowCoverPic     int    `json:"show_cover_pic"`
 	Content          string `json:"content"`
 	ContentSourceURL string `json:"content_source_url"`
-	URL              string `json:"url"`
-	DownURL          string `json:"down_url"`
-}
-
-// GetNews 获取/下载永久素材
-func (material *Material) GetNews(id string) ([]*Article, error) {
-	accessToken, err := material.GetAccessToken()
-	if err != nil {
-		return nil, err
-	}
-	uri := fmt.Sprintf("%s?access_token=%s", getMaterialURL, accessToken)
-
-	var req struct {
-		MediaID string `json:"media_id"`
-	}
-	req.MediaID = id
-	responseBytes, err := util.PostJSON(uri, req)
-
-	var res struct {
-		NewsItem []*Article `json:"news_item"`
-	}
-	err = json.Unmarshal(responseBytes, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.NewsItem, nil
 }
 
 //reqArticles 永久性图文素材请求信息
@@ -167,11 +138,11 @@ func (material *Material) AddVideo(filename, title, introduction string) (mediaI
 	fields := []util.MultipartFormField{
 		{
 			IsFile:    true,
-			Fieldname: "media",
+			Fieldname: "video",
 			Filename:  filename,
 		},
 		{
-			IsFile:    false,
+			IsFile:    true,
 			Fieldname: "description",
 			Value:     fieldValue,
 		},
